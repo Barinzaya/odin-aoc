@@ -6,44 +6,44 @@ import "core:slice"
 import "core:strconv"
 import "core:time"
 
-Input_Err :: enum {
+Day1_Input_Err :: enum {
 	Invalid_Input,
 }
 
-Pair :: struct {
+Day1_Pair :: struct {
 	a, b : int,
 }
 
 day1 :: proc (input: string) {
 	t := time.tick_now()
 
-	pairs, read_err := parse_input(input)
+	pairs, input_err := day1_parse(input)
 	defer delete(pairs)
-	if read_err != nil {
-		fmt.eprintln("Failed to read input:", read_err)
+	if input_err != nil {
+		fmt.eprintln("Failed to parse input:", input_err)
 		os.exit(1)
 	}
 
-	read_dur := time.tick_lap_time(&t)
-	fmt.println("Parsed input in", read_dur)
+	parse_dur := time.tick_lap_time(&t)
 
 	n := len(pairs)
 	slice.sort(pairs.a[:n])
 	slice.sort(pairs.b[:n])
-
 	sort_dur := time.tick_lap_time(&t)
-	fmt.println("Sorted inputs in", sort_dur)
 
-	p1 := day1_part1(pairs)
+	p1 := day1_part1(pairs[:])
 	p1_dur := time.tick_lap_time(&t)
-	fmt.println("Part 1:", p1, "in", p1_dur)
 
-	p2 := day1_part2(pairs)
+	p2 := day1_part2(pairs[:])
 	p2_dur := time.tick_lap_time(&t)
+
+	fmt.println("Parsed input in", parse_dur)
+	fmt.println("Sorted inputs in", sort_dur)
+	fmt.println("Part 1:", p1, "in", p1_dur)
 	fmt.println("Part 2:", p2, "in", p2_dur)
 }
 
-parse_input :: proc (input: string) -> (pairs: #soa[dynamic]Pair, err: Input_Err) {
+day1_parse :: proc (input: string) -> (pairs: #soa[dynamic]Day1_Pair, err: Day1_Input_Err) {
 	n := (len(input) + 1) / 14
 	reserve(&pairs, n)
 
@@ -54,20 +54,20 @@ parse_input :: proc (input: string) -> (pairs: #soa[dynamic]Pair, err: Input_Err
 		b, b_ok := strconv.parse_int(input[i+8:][:5], 10)
 		if !b_ok do return pairs, .Invalid_Input
 
-		append(&pairs, Pair { a, b })
+		append(&pairs, Day1_Pair { a, b })
 	}
 
 	return
 }
 
-day1_part1 :: proc (pairs: #soa[dynamic]Pair) -> (result: int) {
+day1_part1 :: proc (pairs: #soa[]Day1_Pair) -> (result: int) {
 	for pair in pairs {
 		result += abs(pair.a - pair.b)
 	}
 	return 
 }
 
-day1_part2 :: proc (pairs: #soa[dynamic]Pair) -> (result: int) {
+day1_part2 :: proc (pairs: #soa[]Day1_Pair) -> (result: int) {
 	n := len(pairs)
 	for i, j := 0, 0; i < n; i += 1 {
 		a := pairs.a[i]
