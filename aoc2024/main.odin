@@ -7,6 +7,7 @@ run :: proc (day: int, input: string) {
 	switch day {
 	case 1: day1(input)
 	case 2: day2(input)
+	case 3: day3(input)
 	case:
 		fmt.eprintln("Unknown day:", day)
 		os.exit(1)
