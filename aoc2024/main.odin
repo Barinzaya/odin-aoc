@@ -8,6 +8,8 @@ run :: proc (day: int, input: string) {
 	case 1: day1(input)
 	case 2: day2(input)
 	case 3: day3(input)
+	case 4: day4(input)
+
 	case:
 		fmt.eprintln("Unknown day:", day)
 		os.exit(1)
