@@ -48,38 +48,42 @@ day3_part1 :: proc (input: string) -> (result: int) {
 
 day3_part2 :: proc (input: string) -> (result: int) {
 	enabled := true
-	input := input
 
-	for {
-		i, w := strings.index_multi(input, { "mul(", "do()", "don't()" })
-		if i < 0 do break
-
-		input = input[i:]
-		prefix := input[:w]
-		input = input[w:]
-
-		switch prefix {
-		case "do()", "don't()":
-			enabled = w == 4
-
-		case "mul(":
+	left := input
+	for len(left) >= 4 {
+		switch {
+		case strings.has_prefix(left, "mul("):
+			left = left[4:]
 			if !enabled do continue
 
-			a, _ := strconv.parse_uint(input, 10, &i)
+			i : int
+
+			a, _ := strconv.parse_uint(left, 10, &i)
 			if i == 0 do continue
-			input = input[i:]
+			left = left[i:]
 
-			if len(input) < 3 || input[0] != ',' do continue
-			input = input[1:]
+			if len(left) < 3 || left[0] != ',' do continue
+			left = left[1:]
 
-			b, _ := strconv.parse_uint(input, 10, &i)
+			b, _ := strconv.parse_uint(left, 10, &i)
 			if i == 0 do continue
+			left = left[i:]
 
-			input = input[i:]
-			if len(input) < 1 || input[0] != ')' do continue
+			if len(left) < 1 || left[0] != ')' do continue
+			left = left[1:]
 
-			input = input[1:]
 			result += int(a * b)
+
+		case strings.has_prefix(left, "do()"):
+			left = left[4:]
+			enabled = true
+
+		case strings.has_prefix(left, "don't()"):
+			left = left[7:]
+			enabled = false
+
+		case:
+			left = left[1:]
 		}
 	}
 
