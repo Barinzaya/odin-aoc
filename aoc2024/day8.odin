@@ -1,6 +1,5 @@
 package aoc2024
 
-import "base:runtime"
 import "core:fmt"
 import "core:math/bits"
 import "core:os"
@@ -10,19 +9,20 @@ import "core:time"
 
 Day8_Input :: struct {
 	w, h: u16,
-	frequencies: map[u8][dynamic][2]u16,
+	frequencies: [128][dynamic][2]u16,
 }
 
 Day8_Input_Error :: enum {
 	Ok,
+	Invalid_Frequency,
 	Ragged,
 }
 
 day8 :: proc (input: string) {
 	t := time.tick_now()
 
-	grid, input_err := day8_parse(input)
-	if input_err != nil {
+	grid : Day8_Input
+	if input_err := day8_parse(input, &grid); input_err != nil {
 		fmt.eprintln("Failed to parse input:", input_err)
 		os.exit(1)
 	}
@@ -39,23 +39,24 @@ day8 :: proc (input: string) {
 	fmt.println("Part 2:", p2, "in", p2_dur)
 }
 
-day8_parse :: proc (input: string) -> (result: Day8_Input, error: Day8_Input_Error) {
-	frequencies : map[u8][dynamic][2]u16
+day8_parse :: proc (input: string, result: ^Day8_Input) -> (error: Day8_Input_Error) {
 	defer if error != nil {
-		for _, v in frequencies do delete(v)
-		delete(frequencies)
+		for &v in result.frequencies {
+			delete(v)
+			v = {}
+		}
 	}
 
-	w, h, x, y : u16
+	x, y : u16
 	for b in transmute([]u8)input {
-		h = y+1
+		result.h = y+1
 
 		switch b {
 		case '\n':
 			if y == 0 {
-				w = x
-			} else if x != w {
-				return {}, .Ragged
+				result.w = x
+			} else if x != result.w {
+				return .Ragged
 			}
 
 			x = 0
@@ -67,16 +68,10 @@ day8_parse :: proc (input: string) -> (result: Day8_Input, error: Day8_Input_Err
 			continue
 		}
 
-		freq := &frequencies[b]
-		if freq == nil {
-			freq = runtime.map_insert(&frequencies, b, [dynamic][2]u16 {})
-		}
-
-		append(freq, [2]u16 {x, y})
+		append(&result.frequencies[b], [2]u16 {x, y})
 		x += 1
 	}
 
-	result = { w, h, frequencies }
 	return
 }
 
@@ -84,7 +79,7 @@ day8_part1 :: proc (grid: Day8_Input) -> (result: u64) {
 	antinodes := make([]u64, (grid.w*grid.h + 63) / 64)
 	defer delete(antinodes)
 
-	for _, locations in grid.frequencies {
+	for locations in grid.frequencies {
 		for a, i in locations {
 			for b in locations[i+1:] {
 				d := b - a
@@ -112,7 +107,7 @@ day8_part2 :: proc (grid: Day8_Input) -> (result: u64) {
 	antinodes := make([]u64, (grid.w*grid.h + 63) / 64)
 	defer delete(antinodes)
 
-	for _, locations in grid.frequencies {
+	for locations in grid.frequencies {
 		for a, i in locations {
 			for b in locations[i+1:] {
 				d := b - a
@@ -150,17 +145,13 @@ DAY8_EXAMPLE ::
 
 @test
 test_day8 :: proc (t: ^testing.T) {
-	grid, input_err := day8_parse(DAY8_EXAMPLE)
-	defer {
-		for _, v in grid.frequencies do delete(v)
-		delete(grid.frequencies)
-	}
+	grid : Day8_Input
+	input_err := day8_parse(DAY8_EXAMPLE, &grid)
+	defer for v in grid.frequencies do delete(v)
 
 	testing.expect_value(t, input_err, nil)
 	testing.expect_value(t, grid.w, 12)
 	testing.expect_value(t, grid.h, 12)
-
-	testing.expect_value(t, len(grid.frequencies), 2)
 
 	a_pos := grid.frequencies['A']
 	testing.expect_value(t, len(a_pos), 3)
