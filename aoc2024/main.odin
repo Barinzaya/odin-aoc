@@ -22,6 +22,7 @@ run :: proc (day: int, input: string) {
 	case 15: day15(input)
 	case 16: day16(input)
 	case 17: day17(input)
+	case 18: day18(input)
 
 	case:
 		fmt.eprintln("Unknown day:", day)
