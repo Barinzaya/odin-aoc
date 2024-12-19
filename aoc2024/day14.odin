@@ -1,5 +1,6 @@
 package aoc2024
 
+import ba "core:container/bit_array"
 import "core:fmt"
 import "core:math/bits"
 import "core:os"
@@ -32,8 +33,12 @@ day14 :: proc (input: string) {
 	p1 := day14_part1(robots[:], {101, 103}, 100)
 	p1_dur := time.tick_lap_time(&t)
 
+	p2 := day14_part2(robots[:], {101, 103})
+	p2_dur := time.tick_lap_time(&t)
+
 	fmt.println("Parsed input in", parse_dur)
 	fmt.println("Part 1:", p1, "in", p1_dur)
+	fmt.println("Part 2:", p2, "in", p2_dur)
 }
 
 day14_parse :: proc (input: string) -> (result: #soa[dynamic]Day14_Robot, err: Day14_Input_Error) {
@@ -81,20 +86,8 @@ day14_part1 :: proc (robots: #soa[]Day14_Robot, grid_size: [2]int, duration: int
 	na, nb, nc, nd : int
 
 	for robot in robots {
-		dx, dy, fx, fy : int
-		overflow : bool
-
-		dx, overflow = bits.overflowing_mul(duration, int(robot.vx))
-		assert(!overflow)
-		dy, overflow = bits.overflowing_mul(duration, int(robot.vy))
-		assert(!overflow)
-		fx, overflow = bits.overflowing_add(dx, int(robot.px))
-		assert(!overflow)
-		fy, overflow = bits.overflowing_add(dy, int(robot.py))
-		assert(!overflow)
-
-		fx = (fx % grid_size.x + grid_size.x) % grid_size.x
-		fy = (fy % grid_size.y + grid_size.y) % grid_size.y
+		fx := (int(robot.px) + duration * int(robot.vx)) %% grid_size.x
+		fy := (int(robot.py) + duration * int(robot.vy)) %% grid_size.y
 
 		center := grid_size / 2
 		switch {
@@ -106,6 +99,41 @@ day14_part1 :: proc (robots: #soa[]Day14_Robot, grid_size: [2]int, duration: int
 	}
 
 	return na * nb * nc * nd
+}
+
+day14_part2 :: proc (original_robots: #soa[]Day14_Robot, grid_size: [2]int) -> int {
+	occupied : ba.Bit_Array
+	ba.init(&occupied, grid_size.x * grid_size.y)
+	defer ba.destroy(&occupied)
+	
+	robots := make(#soa[]Day14_Robot, len(original_robots))
+	defer delete(robots)
+	for &robot, i in robots do robot = original_robots[i]
+
+	find_image: for i in 0..=max(int) {
+		for &robot in robots do robot.px = u8((int(robot.px) + int(robot.vx)) %% grid_size.x)
+		for &robot in robots do robot.py = u8((int(robot.py) + int(robot.vy)) %% grid_size.y)
+
+		isolated := 0
+
+		ba.clear(&occupied)
+		for robot in robots {
+			i := int(robot.px) + int(robot.py) * grid_size.x
+			ba.set(&occupied, i)
+
+			if int(robot.px) > 0 && ba.get(&occupied, i-1) do continue
+			if int(robot.px) < grid_size.x-1 && ba.get(&occupied, i+1) do continue
+			if int(robot.py) > 0 && ba.get(&occupied, i-grid_size.x) do continue
+			if int(robot.py) < grid_size.y-1 && ba.get(&occupied, i+grid_size.x) do continue
+			isolated += 1
+		}
+
+		if isolated < len(robots)/2 {
+			return i+1
+		}
+	}
+
+	return -1
 }
 
 DAY14_EXAMPLE ::
