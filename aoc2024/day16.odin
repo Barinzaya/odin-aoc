@@ -4,9 +4,7 @@ import ba "core:container/bit_array"
 import pq "core:container/priority_queue"
 import "core:container/queue"
 import "core:fmt"
-import "core:math/linalg"
 import "core:os"
-import "core:strings"
 import "core:testing"
 import "core:time"
 
@@ -54,7 +52,7 @@ day16_parse :: proc (input: string) -> (result: Day16_Metrics, err: Day16_Metric
 	result.end = NO_POS
 
 	x, y : int
-	for b, i in input {
+	for b in input {
 		switch b {
 		case 'S':
 			if result.start != NO_POS do return {}, .Multiple_Starts

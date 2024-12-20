@@ -2,7 +2,6 @@ package aoc2024
 
 import ba "core:container/bit_array"
 import "core:fmt"
-import "core:math/bits"
 import "core:os"
 import "core:strconv"
 import "core:strings"
@@ -49,7 +48,6 @@ day14_parse :: proc (input: string) -> (result: #soa[dynamic]Day14_Robot, err: D
 	for len(left) > 0 {
 		px, py : uint
 		vx, vy, i : int
-		robot : Day14_Robot
 
 		assert(strings.has_prefix(left, "p="))
 		left = left[2:]
@@ -118,13 +116,13 @@ day14_part2 :: proc (original_robots: #soa[]Day14_Robot, grid_size: [2]int) -> i
 
 		ba.clear(&occupied)
 		for robot in robots {
-			i := int(robot.px) + int(robot.py) * grid_size.x
-			ba.set(&occupied, i)
+			j := int(robot.px) + int(robot.py) * grid_size.x
+			ba.set(&occupied, j)
 
-			if int(robot.px) > 0 && ba.get(&occupied, i-1) do continue
-			if int(robot.px) < grid_size.x-1 && ba.get(&occupied, i+1) do continue
-			if int(robot.py) > 0 && ba.get(&occupied, i-grid_size.x) do continue
-			if int(robot.py) < grid_size.y-1 && ba.get(&occupied, i+grid_size.x) do continue
+			if int(robot.px) > 0 && ba.get(&occupied, j-1) do continue
+			if int(robot.px) < grid_size.x-1 && ba.get(&occupied, j+1) do continue
+			if int(robot.py) > 0 && ba.get(&occupied, j-grid_size.x) do continue
+			if int(robot.py) < grid_size.y-1 && ba.get(&occupied, j+grid_size.x) do continue
 			isolated += 1
 		}
 

@@ -142,7 +142,7 @@ day15_part1 :: proc (input: Day15_Input) -> (result: int) {
 
 	robot_idx := int(input.robot_pos.x) + int(input.robot_pos.y) * int(input.size.x)
 
-	for instruction, n in input.instructions {
+	for instruction in input.instructions {
 		step : int
 		switch instruction {
 		case .N: step = -int(input.size.x)
@@ -258,7 +258,7 @@ day15_part2 :: proc (input: Day15_Input) -> (result: int) {
 	stride := 2*int(input.size.x)
 	robot_idx := 2 * int(input.robot_pos.x) + int(input.robot_pos.y) * stride
 
-	for instruction, n in input.instructions {
+	for instruction in input.instructions {
 		switch instruction {
 		case .N: if push_vertical(cells, robot_idx, -stride) do robot_idx -= stride
 		case .E: if push_horizontal(cells, robot_idx, +1) do robot_idx += 1

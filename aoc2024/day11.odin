@@ -1,8 +1,6 @@
 package aoc2024
 
-import "core:container/small_array"
 import "core:fmt"
-import "core:math/bits"
 import "core:os"
 import "core:strconv"
 import "core:strings"

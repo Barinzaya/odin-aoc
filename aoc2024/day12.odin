@@ -117,7 +117,7 @@ day12_solve :: proc (input: string) -> (p1: int, p2: int) {
 		association[i] = u32(region+1)
 	}
 
-	for region, i in regions {
+	for region in regions {
 		p1 += int(region.area) * int(region.perimeter)
 		p2 += int(region.area) * int(region.sides)
 	}
