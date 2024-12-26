@@ -37,9 +37,13 @@ day23 :: proc (input: string) {
 	p1 := day23_part1(pairs)
 	p1_dur := time.tick_lap_time(&t)
 
+	p2 := day23_part2(pairs)
+	p2_dur := time.tick_lap_time(&t)
+
 	fmt.println("Parsed input in", parse_dur)
 	fmt.println("Sorted input in", sort_dur)
 	fmt.println("Part 1:", p1, "in", p1_dur)
+	fmt.println("Part 2:", p2, "in", p2_dur)
 }
 
 day23_parse :: proc (input: string, allocator := context.allocator) -> (result: []Day23_Pair, err: Day23_Input_Error) {
@@ -94,8 +98,8 @@ day23_part1 :: proc (pairs: []Day23_Pair) -> (result: u64) {
 	return
 }
 
-day23_part2 :: proc (named_pairs: []Day23_Pair) -> string {
-	runtime.DEFAULT_TEMP_ALLOCATOR_TEMP_GUARD()
+day23_part2 :: proc (named_pairs: []Day23_Pair, allocator := context.allocator) -> string {
+	runtime.DEFAULT_TEMP_ALLOCATOR_TEMP_GUARD(ignore = allocator == context.temp_allocator)
 
 	Pair :: struct { a, b: u16 }
 	pair_cmp :: proc (a, b: Pair) -> slice.Ordering { 
@@ -104,24 +108,29 @@ day23_part2 :: proc (named_pairs: []Day23_Pair) -> string {
 		return .Equal
 	}
 
-	names := make([dynamic][2]u8, 0, len(named_pairs), context.temp_allocator)
+	names := make([dynamic][2]u8, 0, 2 * len(named_pairs), context.temp_allocator)
+	names_set := make(map[[2]u8]struct{}, 2 * len(named_pairs), context.temp_allocator)
+
+	for pair, i in named_pairs {
+		if pair.a not_in names_set {
+			assert(len(names) <= int(max(u16)))
+			append(&names, pair.a)
+			names_set[pair.a] = {}
+		}
+
+		if pair.b not_in names_set {
+			assert(len(names) <= int(max(u16)))
+			append(&names, pair.b)
+			names_set[pair.b] = {}
+		}
+	}
+
+	slice.sort_by_cmp(names[:], day23_computer_cmp)
 	pairs := make([]Pair, len(named_pairs), context.temp_allocator)
 
 	for pair, i in named_pairs {
-		a, a_ok := slice.binary_search_by(names[:], pair.a, day23_computer_cmp)
-		if !a_ok {
-			assert(len(names) <= int(max(u16)))
-			a = len(names)
-			append(&names, pair.a)
-		}
-
-		b, b_ok := slice.binary_search_by(names[:], pair.b, day23_computer_cmp)
-		if !b_ok {
-			assert(len(names) <= int(max(u16)))
-			b = len(names)
-			append(&names, pair.b)
-		}
-
+		a, _ := slice.binary_search_by(names[:], pair.a, day23_computer_cmp)
+		b, _ := slice.binary_search_by(names[:], pair.b, day23_computer_cmp)
 		pairs[i] = {u16(a), u16(b)}
 	}
 
@@ -140,14 +149,13 @@ day23_part2 :: proc (named_pairs: []Day23_Pair) -> string {
 			copy(best.bits[:], current.bits[:])
 		}
 
-		new_candidates, remaining : ba.Bit_Array
+		new_candidates : ba.Bit_Array
 		ba.init(&new_candidates, ba.len(candidates), allocator = context.temp_allocator)
-		ba.init(&remaining,      ba.len(candidates), allocator = context.temp_allocator)
-		copy(remaining.bits[:], candidates.bits[:])
 
-		iter := ba.make_iterator(&remaining)
+		iter := ba.make_iterator(candidates)
 		for next in ba.iterate_by_set(&iter) {
-			ba.unsafe_unset(&remaining, next)
+			ba.unsafe_set(current, next)
+			num_current^ += 1
 
 			start, _ := slice.binary_search_by(pairs, Pair { u16(next), 0 }, pair_cmp)
 			ba.clear(&new_candidates)
@@ -161,9 +169,6 @@ day23_part2 :: proc (named_pairs: []Day23_Pair) -> string {
 				x.new &= x.old
 			}
 
-			ba.unsafe_set(current, next)
-			num_current^ += 1
-
 			recurse(num_best, num_current, best, &new_candidates, current, pairs)
 
 			ba.unsafe_unset(current, next)
@@ -171,7 +176,7 @@ day23_part2 :: proc (named_pairs: []Day23_Pair) -> string {
 		}
 	}
 
-	for i := 0; i < len(pairs); i += 1 {
+	for i := 0; i < len(pairs); {
 		name := pairs[i].a
 		for /**/; i < len(pairs); i += 1 {
 			pair := pairs[i]
@@ -190,8 +195,20 @@ day23_part2 :: proc (named_pairs: []Day23_Pair) -> string {
 		ba.clear(&candidates)
 	}
 
-	fmt.println("BEST:", num_best)
-	return ""
+	if num_best == 0 do return ""
+
+	n := 0
+	result := make([dynamic]u8, 3*num_best - 1, allocator)
+
+	it := ba.make_iterator(&best)
+	for i in ba.iterate_by_set(&it) {
+		if n > 0 do result[3*n-1] = ','
+		result[3*n+0] = names[i][0] + 'a'
+		result[3*n+1] = names[i][1] + 'a'
+		n += 1
+	}
+
+	return string(result[:])
 }
 
 day23_computer_cmp :: proc (a, b: [2]u8) -> slice.Ordering { 
