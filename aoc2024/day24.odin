@@ -1,7 +1,10 @@
 package aoc2024
 
 import "base:runtime"
+import "core:bufio"
+import ts "core:container/topological_sort"
 import "core:fmt"
+import "core:io"
 import "core:os"
 import "core:slice"
 import "core:strconv"
@@ -45,8 +48,12 @@ day24 :: proc (input: string) {
 	p1 := day24_part1(gates)
 	p1_dur := time.tick_lap_time(&t)
 
+	day24_part2(gates)
+	p2_dur := time.tick_lap_time(&t)
+
 	fmt.println("Parsed input in", parse_dur)
 	fmt.println("Part 1:", p1, "in", p1_dur)
+	fmt.println("Part 2 graph generated in", p2_dur)
 }
 
 day24_part1 :: proc (gates: map[[3]u8]Day24_Source) -> (result: u64) {
@@ -63,6 +70,58 @@ day24_part1 :: proc (gates: map[[3]u8]Day24_Source) -> (result: u64) {
 		result |= u64(z) << i
 	}
 
+	return
+}
+
+day24_part2 :: proc (gates: map[[3]u8]Day24_Source) {
+	runtime.DEFAULT_TEMP_ALLOCATOR_TEMP_GUARD()
+
+	dot_handle, open_err := os.open("24.dot", os.O_CREATE | os.O_TRUNC | os.O_WRONLY)
+	if open_err != nil {
+		fmt.eprintln("Failed to open <24.dot>:", open_err)
+		os.exit(1)
+	}
+	defer os.close(dot_handle)
+	
+	dot_buf : bufio.Writer
+	bufio.writer_init(&dot_buf, os.stream_from_handle(dot_handle), allocator = context.temp_allocator)
+	defer bufio.writer_destroy(&dot_buf)
+
+	dot := bufio.writer_to_writer(&dot_buf)
+	fmt.wprintfln(dot, `digraph {{`)
+
+	for name, gate in gates {
+		color, label : string
+
+		switch g in gate {
+		case Day24_Constant:
+			color = "#bbf"
+			label = "1\\n\\N" if g.value else "0\\n\\N"
+
+		case Day24_Gate:
+			name := name
+
+			color = "#bbb"
+			label = string(name[:])
+
+			op : string
+			switch g.op {
+			case .And: op = "&"
+			case .Or:  op = "|"
+			case .Xor: op = "~"
+			}
+
+			fmt.wprintfln(dot, `  _op_%s [label="%s", fillcolor="#bbb", style="filled"]`, name, op)
+			fmt.wprintfln(dot, `  %s -> _op_%s`, g.a, name)
+			fmt.wprintfln(dot, `  %s -> _op_%s`, g.b, name)
+			fmt.wprintfln(dot, `  _op_%s -> %s`, name, name)
+		}
+
+		if name[0] == 'z' do color = "#fdb"
+		fmt.wprintfln(dot, `  %s [label="%s", fillcolor="%s", style="filled"]`, name, label, color)
+	}
+
+	fmt.wprintfln(dot, `}}`)
 	return
 }
 
