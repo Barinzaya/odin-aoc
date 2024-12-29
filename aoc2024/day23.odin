@@ -5,7 +5,6 @@ import ba "core:container/bit_array"
 import "core:fmt"
 import "core:os"
 import "core:slice"
-import "core:strings"
 import "core:testing"
 import "core:time"
 
@@ -84,7 +83,7 @@ day23_parse :: proc (input: string, allocator := context.allocator) -> (result: 
 
 day23_part1 :: proc (pairs: []Day23_Pair) -> (result: u64) {
 	for pair, i in pairs {
-		for other, j in pairs[i+1:] {
+		for other in pairs[i+1:] {
 			if pair.a != other.a do break
 
 			prefix := u8('t' - 'a')
@@ -111,7 +110,7 @@ day23_part2 :: proc (named_pairs: []Day23_Pair, allocator := context.allocator) 
 	names := make([dynamic][2]u8, 0, 2 * len(named_pairs), context.temp_allocator)
 	names_set := make(map[[2]u8]struct{}, 2 * len(named_pairs), context.temp_allocator)
 
-	for pair, i in named_pairs {
+	for pair in named_pairs {
 		if pair.a not_in names_set {
 			assert(len(names) <= int(max(u16)))
 			append(&names, pair.a)

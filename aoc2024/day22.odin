@@ -81,16 +81,16 @@ day22_part2 :: proc (secrets: []u32, iterations := 2000) -> (result: u64) {
 		}
 	}
 
-	for slot, c in slots do result = max(result, u64(slot.sum))
+	for slot in slots do result = max(result, u64(slot.sum))
 	return
 }
 
-day22_step :: proc (secret: u32) -> u32 {
+day22_step :: proc (secret: u32) -> (result: u32) {
 	MASK :: 1 << 24 - 1
-	secret := (secret ~ (secret << 6)) & MASK
-	secret  = (secret ~ (secret >> 5))
-	secret  = (secret ~ (secret << 11)) & MASK
-	return secret
+	result = (secret ~ (secret << 6)) & MASK
+	result = (result ~ (result >> 5))
+	result = (result ~ (result << 11)) & MASK
+	return result
 }
 
 DAY22_EXAMPLE1 ::

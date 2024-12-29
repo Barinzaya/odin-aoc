@@ -2,11 +2,8 @@ package aoc2024
 
 import "base:runtime"
 import "core:bufio"
-import ts "core:container/topological_sort"
 import "core:fmt"
-import "core:io"
 import "core:os"
-import "core:slice"
 import "core:strconv"
 import "core:strings"
 import "core:testing"

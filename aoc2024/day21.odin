@@ -3,7 +3,6 @@ package aoc2024
 import "base:runtime"
 import "core:fmt"
 import "core:os"
-import "core:strconv"
 import "core:testing"
 import "core:time"
 
@@ -133,7 +132,7 @@ day21_solve :: proc (codes: [][]Day21_Num_Key, indirections: int) -> (result: u6
 	}
 
 	costs, costs_new := &costs_a, &costs_b
-	for i in 0..<indirections {
+	for _ in 0..<indirections {
 		for from in Day21_Dir_Key do for to in Day21_Dir_Key {
 			costs_new[from][to] = calculate_cost(costs, day21_dir_pos[from], day21_dir_pos[to])
 		}
@@ -160,25 +159,6 @@ day21_solve :: proc (codes: [][]Day21_Num_Key, indirections: int) -> (result: u6
 
 	return
 }
-
-/*
-1 [.Enter = [.Enter = 0, .Up = 1, .Down = 2, .Left = 3, .Right = 1], .Up = [
-.Enter = 1, .Up = 0, .Down = 1, .Left = 2, .Right = 2], .Down = [.Enter = 2, .Up = 1, .Down = 0, .Left = 1, .Right = 1], .Left = [.Enter = 3, .Up = 2, .Down = 1, .Left = 0, .Right = 2], .Right = [.Enter = 1, .Up = 2, .Down = 1, .Left = 2, .Right = 0]]
-2 [.Enter = [.Enter = 0, .Up = 7, .Down = 8, .Left = 9, .Right = 5], .Up = [.Enter = 3, .Up = 0, .Down = 5, .Left = 8, .Right = 6], .Down = [.Enter = 6, .Up = 3, .Down = 0, .Left = 7, .Right = 3], .Left = [.Enter = 7, .Up = 6, .Down = 3, .Left = 0, .Right = 4], .Right = [.Enter = 3, .Up = 8, .Down = 7, .Left = 8, .Right = 0]]
-_0 18 _2 12 _9 20 Enter 18 68 29
-_9 14 _8 18 _0 18 Enter 10 60 980
-_1 22 _7 13 _9 11 Enter 18 64 179
-_4 23 _5 10 _6 10 Enter 17 60 456
-_3 12 _7 23 _9 11 Enter 18 64 379
-
-029A: <vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
-980A: <v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A
-             ^        <<       A       ^^   A     >>   A        vvv      A
-         <   A  v <   AA >>  ^ A   <   AA > A  v  AA ^ A   < v  AAA >  ^ A
-179A: <v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
-456A: <v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A
-379A: <v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
-*/
 
 DAY21_EXAMPLE ::
 `029A
